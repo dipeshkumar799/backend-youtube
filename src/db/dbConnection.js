@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { db_name } from "../constant.js";
-const ip = process.env.MONGODB_URL;
-console.log(ip);
+
 const connectDB = async () => {
   try {
     const connectionInstance = await mongoose.connect(
