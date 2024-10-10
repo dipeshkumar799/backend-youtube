@@ -11,8 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+<<<<<<< HEAD
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+=======
+>>>>>>> dbcc2bdf6bb5e71bab3c6dbdfdc5d804b0ca7c6d
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "mongoose": "^8.6.3",
