@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const userSchema = new Schema(
     {
@@ -29,17 +30,17 @@ const userSchema = new Schema(
             required: true,
         },
         watchHistory: [
-          {
-             type: Schema.Types.ObjectId,
-            ref: "Video",
-        }
-      ],
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Video",
+            },
+        ],
         refreshToken: {
             type: String,
         },
         password: {
             type: String,
-            required: [true,"password is required"]
+            required: [true, "password is required"],
         },
     },
     { timestamps: true }
