@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import aggregatePaginate from "mongoose-aggregate-paginate-v2";
+import bcrypt from "bcrypt";
 
 const userSchema = new Schema(
     {
@@ -45,4 +45,7 @@ const userSchema = new Schema(
     },
     { timestamps: true }
 );
+// bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
+
+// });
 export const User = mongoose.model("User", userSchema);
