@@ -8,4 +8,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 
+import userRouter from "./routes/user.routes.js";
+app.use("/api/v1/users", userRouter);
+
+//route Declear
+//this running like http://localhost:3000/user
+
 export default app;
