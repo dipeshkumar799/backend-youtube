@@ -3,6 +3,7 @@ import { ApiError } from "../utiles/apiError.js";
 import { User } from "../models/User.model.js";
 import { apiResponse } from "../utiles/apiResponse.js";
 import { uploadOnCloudinary } from "../utiles/cloudnary.js";
+
 const generateAccessTokenToken = async (userId) => {
     try {
         const user = await User.findById(userId);
@@ -154,4 +155,9 @@ const loginUser = asyncHandler(async () => {
             )
         );
 });
-export { registerUser, loginUser };
+const loggedOutUser = asyncHandler(async (req, res) => {
+    const user = await User.findById(user._id).select(
+        "-password -refreshToken"
+    );
+});
+export { registerUser, loginUser, loggedOutUser };
