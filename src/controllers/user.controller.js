@@ -1,19 +1,20 @@
 import { asyncHandler } from "../utiles/asyncHandler.js";
 import { ApiError } from "../utiles/apiError.js";
 import { User } from "../models/User.model.js";
+import { apiResponse } from "../utiles/apiResponse.js";
 import { uploadOnCloudinary } from "../utiles/cloudnary.js";
 const generateAccessTokenToken = async (userId) => {
     try {
         const user = await User.findById(userId);
         // 1. Fetch the user by their ID from the database.
-        const accessToken = await generateAcessToken();
+        const accessToken = await user.generateAcessToken();
         // 2. Generate an access token (used for user authentication).
-        const refreshToke = await generateRefreshToken();
+        const refreshToken = await user.generateRefreshToken();
         // 3. Generate a refresh token (used to obtain a new access token when the current one expires)
-        user.refreshToke = refreshToke;
+        user.refreshToken = refreshToken;
         // 4. Assign the generated refresh token to the user object (typically stored in the database).
         await user.save({ validateBeforeSave: true });
-        return { accessToken, refreshToke }; //Both the accessToken and the refreshToke (refresh token) are returned as an object. This allows the calling code to use these tokens, for example, to send them to the user.
+        return { accessToken, refreshToken }; //Both the accessToken and the refreshToke (refresh token) are returned as an object. This allows the calling code to use these tokens, for example, to send them to the user.
     } catch (error) {
         throw new ApiError(400, "something went wrong while generating token");
     }
@@ -125,8 +126,32 @@ const loginUser = asyncHandler(async () => {
     if (!isPasswordValid) {
         throw new ApiError(404, "password invalid");
     }
-    const { accessToken, refreshToke } = await generateAccessTokenToken(
+    //when password is valid then it
+    const { accessToken, refreshToken } = await generateAccessTokenToken(
         user._id
     );
+    const loggedInUser = await User.findById(user._id).select(
+        "-password  -refreshToken"
+    );
+    //it means doesn't allow to modify from frontend
+    const options = {
+        httpOnly: true,
+        secure: true,
+    };
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new apiResponse(
+                200,
+                {
+                    user: loggedInUser,
+                    accessToken,
+                    refreshToken,
+                },
+                "user loggedin successfull"
+            )
+        );
 });
 export { registerUser, loginUser };
