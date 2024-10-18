@@ -31,7 +31,7 @@ const registerUser = asyncHandler(async (req, res) => {
     //check for user  creation
     //return response
     const { username, email, password, fullname } = req.body;
-    console.log([username, email, password, fullname]);
+    // console.log([username, email, password, fullname]);
     if (
         [username, email, password, fullname].some(
             (fields) => fields?.trim() === ""
@@ -80,11 +80,11 @@ const registerUser = asyncHandler(async (req, res) => {
         coverImage: coverImage.url || "",
         password,
     });
-    console.log(user);
+    // console.log(user);
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     );
-    console.log("the cretaed user", createdUser);
+    // console.log("the cretaed user", createdUser);
 
     if (!createdUser) {
         throw new ApiError(500, "something went wrong while creating ");
@@ -96,7 +96,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 });
 
-const loginUser = asyncHandler(async () => {
+const loginUser = asyncHandler(async (req, res) => {
     //take input from email or username and password
     //email find in db if email then email already exit
     //password check if wrong then worng
@@ -104,6 +104,7 @@ const loginUser = asyncHandler(async () => {
     //refresh and access token generate  send them  to user
     //send in cookies
     const { email, password, username } = req.body;
+
     if (!email || (!username && !password)) {
         throw new ApiError(
             404,
@@ -120,10 +121,12 @@ const loginUser = asyncHandler(async () => {
             },
         ],
     });
+    // console.log("dipesh", user);
     if (!user) {
         throw new ApiError(400, "user doesn't exist");
     }
     const isPasswordValid = await user.isPasswordCorrect(password);
+
     if (!isPasswordValid) {
         throw new ApiError(404, "password invalid");
     }
@@ -156,6 +159,7 @@ const loginUser = asyncHandler(async () => {
         );
 });
 const loggedOutUser = asyncHandler(async (req, res) => {
+    console.log(req.user);
     await User.findByIdAndUpdate(req.user._id, {
         $set: {
             refreshToken: undefined,
@@ -168,8 +172,8 @@ const loggedOutUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .ClearCookie("accessToken", options)
-        .ClearCookie("refreshToken", options)
-        .json(200, {}, "User loggedOut in Successfully");
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json({ message: "User logged out successfully" });
 });
 export { registerUser, loginUser, loggedOutUser };
