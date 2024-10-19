@@ -105,7 +105,7 @@ const loginUser = asyncHandler(async (req, res) => {
     //send in cookies
     const { email, password, username } = req.body;
 
-    if (!email || (!username && !password)) {
+    if ((!email || !username) && !password) {
         throw new ApiError(
             404,
             "email or username and password must be required"
@@ -218,18 +218,24 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
-    const { newPassword, oldPassword } = req.body;
+    const { newPassword, oldPassword, confirmPassword } = req.body;
 
     // Check if newPassword and oldPassword are provided
-    if (!newPassword || !oldPassword) {
+    if (!newPassword || !oldPassword || !confirmPassword) {
         throw new ApiError(
             400,
             "Both newPassword and oldPassword are required"
         );
     }
+    if (!(confirmPassword === newPassword)) {
+        throw new ApiError(
+            401,
+            " newPassword  and confirmPassword doesn't match "
+        );
+    }
 
     // Find the user by ID
-    const user = await User.findById(req.user?._id);
+    const user = await User.findById(req.user?._id); //this user come from auth.js files
     if (!user) {
         throw new ApiError(404, "User not found");
     }
@@ -244,7 +250,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     user.password = newPassword; // You may want to hash it inside the User model
 
     // Save the updated user
-    await user.save();
+    await user.save({ validateBeforeSave: true });
 
     // Respond to the client
     res.status(200).json({ message: "Password changed successfully" });
@@ -284,5 +290,53 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 //     // Respond to the client
 //     res.status(200).json({ message: "Password changed successfully" });
 // });
+const currentUser = asyncHandler(async (req, res) => {
+    return res
+        .status(200)
+        .json(200, req.user, "Current user fetch successfully");
+});
+const updateAccountDetail = asyncHandler(async (req, res) => {
+    const { username, fullname, email } = req.body;
+    if (!username || !email || !fullname) {
+        throw new ApiError(
+            401,
+            "username, fullname, and email must be required"
+        );
+    }
 
-export { registerUser, loginUser, loggedOutUser, refreshAccessToken };
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                username: username,
+                fullname: fullname,
+                email: email,
+            },
+        },
+        { new: true }
+    );
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const updatedUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    );
+
+    return res.status(200).json({
+        status: 200,
+        message: "User updated successfully",
+        data: updatedUser,
+    });
+});
+
+export {
+    registerUser,
+    loginUser,
+    loggedOutUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+    currentUser,
+    updateAccountDetail,
+};
