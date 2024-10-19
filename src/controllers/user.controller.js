@@ -243,7 +243,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     // Check if the old password is correct
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
     if (!isPasswordCorrect) {
-        throw new ApiError(401, "Old password doesn't match");
+        throw new ApiError((401, "Old password doesn't match"));
     }
 
     // Hash the new password before saving (assuming user has a method for password hashing)
