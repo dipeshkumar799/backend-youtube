@@ -159,7 +159,6 @@ const loginUser = asyncHandler(async (req, res) => {
         );
 });
 const loggedOutUser = asyncHandler(async (req, res) => {
-    console.log(req.user);
     await User.findByIdAndUpdate(req.user._id, {
         $set: {
             refreshToken: undefined,
@@ -217,5 +216,73 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             )
         );
 });
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { newPassword, oldPassword } = req.body;
+
+    // Check if newPassword and oldPassword are provided
+    if (!newPassword || !oldPassword) {
+        throw new ApiError(
+            400,
+            "Both newPassword and oldPassword are required"
+        );
+    }
+
+    // Find the user by ID
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    // Check if the old password is correct
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "Old password doesn't match");
+    }
+
+    // Hash the new password before saving (assuming user has a method for password hashing)
+    user.password = newPassword; // You may want to hash it inside the User model
+
+    // Save the updated user
+    await user.save();
+
+    // Respond to the client
+    res.status(200).json({ message: "Password changed successfully" });
+});
+
+//or
+// const changeCurrentPassword = asyncHandler(async (req, res) => {
+//     const { newPassword, oldPassword } = req.body;
+
+//     // Check if newPassword and oldPassword are provided
+//     if (!newPassword || !oldPassword) {
+//         throw new ApiError(400, "Both newPassword and oldPassword are required");
+//     }
+
+//     // Find the user by ID
+//     const user = await User.findById(req.user?._id);
+//     if (!user) {
+//         throw new ApiError(404, "User not found");
+//     }
+
+//     // Check if the old password is correct
+//     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+//     if (!isPasswordCorrect) {
+//         throw new ApiError(401, "Old password doesn't match");
+//     }
+
+//     // Hash the new password before updating (if not handled automatically by the model)
+//     const hashedNewPassword = await user.hashPassword(newPassword); // Assuming hashPassword is a method in the User model
+
+//     // Update the user's password using $set
+//     await User.findByIdAndUpdate(user._id, {
+//         $set: {
+//             password: hashedNewPassword
+//         }
+//     });
+
+//     // Respond to the client
+//     res.status(200).json({ message: "Password changed successfully" });
+// });
 
 export { registerUser, loginUser, loggedOutUser, refreshAccessToken };
