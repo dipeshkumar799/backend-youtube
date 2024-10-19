@@ -330,6 +330,57 @@ const updateAccountDetail = asyncHandler(async (req, res) => {
         data: updatedUser,
     });
 });
+const upadateAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = await req.file?.path;
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "avatar file is missing");
+    }
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    if (!avatar.url) {
+        throw new ApiError(400, " avatar file is not found");
+    }
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                avatar: avatar.url,
+            },
+        },
+        { new: true }
+    ).select("-password -refreshToken");
+    return res.status(200).json(200, user, "avatar uploaded successfull");
+});
+const updateCoverImage = asyncHandler(async (req, res) => {
+    const coverLocalPath = req.file?.path; // No need for `await` here, it's just accessing the file path
+    if (!coverLocalPath) {
+        throw new ApiError(400, "Cover image file is missing");
+    }
+
+    const coverImage = await uploadOnCloudinary(coverLocalPath);
+    if (!coverImage.url) {
+        throw new ApiError(400, "Cover image upload failed");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                coverImage: coverImage.url,
+            },
+        },
+        { new: true } // Return the updated user
+    ).select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: "Cover image uploaded successfully",
+        user,
+    });
+});
 
 export {
     registerUser,
@@ -339,4 +390,6 @@ export {
     changeCurrentPassword,
     currentUser,
     updateAccountDetail,
+    upadateAvatar,
+    updateCoverImage,
 };
