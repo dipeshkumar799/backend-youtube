@@ -381,7 +381,6 @@ const updateCoverImage = asyncHandler(async (req, res) => {
         user,
     });
 });
-
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { username } = req.params;
 
@@ -397,8 +396,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         {
             $lookup: {
-                //$lookup is an aggregation stage used to perform a left outer join between two collections.
-                from: "suscription",
+                from: "suscription", // Remove the extra space
                 localField: "_id",
                 foreignField: "channel",
                 as: "suscriber",
@@ -406,8 +404,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         {
             $lookup: {
-                //$lookup is an aggregation stage used to perform a left outer join between two collections.
-                from: "suscription",
+                from: "suscription", // Remove the extra space
                 localField: "_id",
                 foreignField: "suscriber",
                 as: "suscribeTo",
@@ -415,22 +412,33 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         {
             $addFields: {
-                // used to add new fields to documents.
                 suscribersCount: {
-                    $size: "$suscriber", // $size operator is used in MongoDB to return the number of elements in an array.
+                    $size: "$suscriber", // Count of subscribers
                 },
                 channelSuscribeToCount: {
-                    $size: "$suscribeTo", // $size operator is used in MongoDB to return the number of elements in an array.
+                    $size: "$suscribeTo", // Count of subscriptions
                 },
                 isSuscribed: {
                     $cond: {
                         if: {
-                            $in: [req.user?._id, "$suscriber.suscriber"], // $in operator is used to specify a condition that checks whether a given value matches any value in a specified array.
+                            $in: [req.user?._id, "$suscriber.suscriber"], // Proper use of $in
                         },
                         then: true,
                         else: false,
                     },
                 },
+            },
+        },
+        {
+            $project: {
+                username: 1,
+                fullname: 1,
+                email: 1,
+                suscribersCount: 1,
+                channelSuscribeToCount: 1,
+                isSuscribed: 1,
+                coverImage: 1,
+                avatar: 1,
             },
         },
     ]);
