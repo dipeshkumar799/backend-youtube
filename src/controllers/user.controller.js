@@ -382,6 +382,67 @@ const updateCoverImage = asyncHandler(async (req, res) => {
     });
 });
 
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+    const { username } = req.params;
+
+    if (!username) {
+        throw new ApiError(400, "username not found");
+    }
+
+    const channel = await User.aggregate([
+        {
+            $match: {
+                username: username.toLowerCase(),
+            },
+        },
+        {
+            $lookup: {
+                //$lookup is an aggregation stage used to perform a left outer join between two collections.
+                from: "suscription",
+                localField: "_id",
+                foreignField: "channel",
+                as: "suscriber",
+            },
+        },
+        {
+            $lookup: {
+                //$lookup is an aggregation stage used to perform a left outer join between two collections.
+                from: "suscription",
+                localField: "_id",
+                foreignField: "suscriber",
+                as: "suscribeTo",
+            },
+        },
+        {
+            $addFields: {
+                // used to add new fields to documents.
+                suscribersCount: {
+                    $size: "$suscriber", // $size operator is used in MongoDB to return the number of elements in an array.
+                },
+                channelSuscribeToCount: {
+                    $size: "$suscribeTo", // $size operator is used in MongoDB to return the number of elements in an array.
+                },
+                isSuscribed: {
+                    $cond: {
+                        if: {
+                            $in: [req.user?._id, "$suscriber.suscriber"], // $in operator is used to specify a condition that checks whether a given value matches any value in a specified array.
+                        },
+                        then: true,
+                        else: false,
+                    },
+                },
+            },
+        },
+    ]);
+
+    // Check if channel was found
+    if (channel.length === 0) {
+        return res.status(404).json({ message: "Channel not found" });
+    }
+
+    res.status(200).json(channel);
+});
+
 export {
     registerUser,
     loginUser,
@@ -392,4 +453,5 @@ export {
     updateAccountDetail,
     upadateAvatar,
     updateCoverImage,
+    getUserChannelProfile,
 };
