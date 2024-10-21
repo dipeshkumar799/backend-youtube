@@ -396,7 +396,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         {
             $lookup: {
-                from: "suscription", // Remove the extra space
+                from: "suscriptions",
                 localField: "_id",
                 foreignField: "channel",
                 as: "suscriber",
@@ -404,7 +404,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         {
             $lookup: {
-                from: "suscription", // Remove the extra space
+                from: "suscriptions", // Remove the extra space
                 localField: "_id",
                 foreignField: "suscriber",
                 as: "suscribeTo",
@@ -421,7 +421,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                 isSuscribed: {
                     $cond: {
                         if: {
-                            $in: [req.user?._id, "$suscriber.suscriber"], // Proper use of $in
+                            $in: [req.user?._id, "$suscriber.suscriber"],
                         },
                         then: true,
                         else: false,
