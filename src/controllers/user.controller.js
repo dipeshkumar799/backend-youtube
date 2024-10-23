@@ -3,6 +3,7 @@ import { ApiError } from "../utiles/apiError.js";
 import { User } from "../models/User.model.js";
 import { apiResponse } from "../utiles/apiResponse.js";
 import { uploadOnCloudinary } from "../utiles/cloudnary.js";
+import mongoose from "mongoose";
 
 const generateAccessTokenToken = async (userId) => {
     try {
@@ -20,6 +21,7 @@ const generateAccessTokenToken = async (userId) => {
         throw new ApiError(400, "something went wrong while generating token");
     }
 };
+
 const registerUser = asyncHandler(async (req, res) => {
     //get user input like username,email,password..etc from frontend
     //user validation
@@ -381,6 +383,7 @@ const updateCoverImage = asyncHandler(async (req, res) => {
         user,
     });
 });
+
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { username } = req.params;
 
@@ -453,6 +456,40 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     );
 });
 
+const getWatchHistory = asyncHandler(async (req, res) => {
+    const user = await User.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user._id),
+            },
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watch_History",
+                pipeline: [
+                    {
+                        from: "users",
+                        localField: "owner",
+                        foreignField: "_id",
+                        as: "_owner",
+                        pipeline: [
+                            {
+                                $project: {
+                                    fullname: 1,
+                                    avatar: 1,
+                                    username: 1,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+    ]);
+});
 export {
     registerUser,
     loginUser,
