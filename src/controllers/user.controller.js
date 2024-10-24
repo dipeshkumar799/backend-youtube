@@ -407,7 +407,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         {
             $lookup: {
-                from: "suscriptions", // Remove the extra space
+                from: "suscriptions",
                 localField: "_id",
                 foreignField: "suscriber",
                 as: "suscribeTo",
@@ -456,6 +456,40 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     );
 });
 
+// const getWatchHistory = asyncHandler(async (req, res) => {
+//     const user = await User.aggregate([
+//         {
+//             $match: {
+//                 _id: new mongoose.Types.ObjectId(req.user._id),
+//             },
+//         },
+//         {
+//             $lookup: {
+//                 from: "videos",
+//                 localField: "watchHistory",
+//                 foreignField: "_id",
+//                 as: "watch_History",
+//                 pipeline: [
+//                     {
+//                         from: "users",
+//                         localField: "owner",
+//                         foreignField: "_id",
+//                         as: "_owner",
+//                         pipeline: [
+//                             {
+//                                 $project: {
+//                                     fullname: 1,
+//                                     avatar: 1,
+//                                     username: 1,
+//                                 },
+//                             },
+//                         ],
+//                     },
+//                 ],
+//             },
+//         },
+//     ]);
+// });
 const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
         {
@@ -468,27 +502,38 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                 from: "videos",
                 localField: "watchHistory",
                 foreignField: "_id",
-                as: "watch_History",
+                as: "getWtachHistory",
                 pipeline: [
                     {
-                        from: "users",
-                        localField: "owner",
-                        foreignField: "_id",
-                        as: "_owner",
-                        pipeline: [
-                            {
-                                $project: {
-                                    fullname: 1,
-                                    avatar: 1,
-                                    username: 1,
+                        $lookup: {
+                            from: "user",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        fullname: 1,
+                                        username: 1,
+                                        avatar: 1,
+                                    },
                                 },
-                            },
-                        ],
+                            ],
+                        },
                     },
                 ],
             },
         },
     ]);
+    return res
+        .status(200)
+        .json(
+            new apiResponse(
+                200,
+                user[0].getWatchHistory,
+                "Watch History  fetched successfully"
+            )
+        );
 });
 export {
     registerUser,
@@ -501,4 +546,5 @@ export {
     upadateAvatar,
     updateCoverImage,
     getUserChannelProfile,
+    getWatchHistory,
 };
