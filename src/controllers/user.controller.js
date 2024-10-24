@@ -33,7 +33,7 @@ const registerUser = asyncHandler(async (req, res) => {
     //check for user  creation
     //return response
     const { username, email, password, fullname } = req.body;
-    // console.log([username, email, password, fullname]);
+    console.log([username, email, password, fullname]);
     if (
         [username, email, password, fullname].some(
             (fields) => fields?.trim() === ""
@@ -52,7 +52,7 @@ const registerUser = asyncHandler(async (req, res) => {
             },
         ],
     });
-    console.log(existedUser);
+
     if (existedUser) {
         throw new ApiError(409, "User Already Exist");
     }
@@ -86,7 +86,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     );
-    // console.log("the cretaed user", createdUser);
+    console.log("the cretaed user", createdUser);
 
     if (!createdUser) {
         throw new ApiError(500, "something went wrong while creating ");
@@ -106,6 +106,7 @@ const loginUser = asyncHandler(async (req, res) => {
     //refresh and access token generate  send them  to user
     //send in cookies
     const { email, password, username } = req.body;
+    console.log([email, password, username]);
 
     if ((!email || !username) && !password) {
         throw new ApiError(
@@ -123,7 +124,7 @@ const loginUser = asyncHandler(async (req, res) => {
             },
         ],
     });
-    // console.log("dipesh", user);
+
     if (!user) {
         throw new ApiError(400, "user doesn't exist");
     }
@@ -177,10 +178,12 @@ const loggedOutUser = asyncHandler(async (req, res) => {
         .clearCookie("refreshToken", options)
         .json({ message: "User logged out successfully" });
 });
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incommingRefreshToken =
         (await req.cookies.refreshToken) || req.body.refreshToken;
     //this token access from client
+    console.log(refreshAccessToken);
 
     if (!incommingRefreshToken) {
         throw new ApiError(401, "unauthorized request");
@@ -221,6 +224,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { newPassword, oldPassword, confirmPassword } = req.body;
+    console.log([newPassword, oldPassword, confirmPassword]);
 
     // Check if newPassword and oldPassword are provided
     if (!newPassword || !oldPassword || !confirmPassword) {
@@ -238,6 +242,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
     // Find the user by ID
     const user = await User.findById(req.user?._id); //this user come from auth.js files
+    console.log(user);
     if (!user) {
         throw new ApiError(404, "User not found");
     }
