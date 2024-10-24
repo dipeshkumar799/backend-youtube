@@ -1,9 +1,13 @@
 import { Router } from "express";
 import {
     currentUser,
+    getUserChannelProfile,
+    getWatchHistory,
     loggedOutUser,
     registerUser,
+    upadateAvatar,
     updateAccountDetail,
+    updateCoverImage,
 } from "../controllers/user.controller.js";
 import { loginUser } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -32,5 +36,9 @@ router.route("/refreshToken").post(refreshAccessToken);
 router.route("/changeCurrentPassword").post(verifyJwt, changeCurrentPassword);
 router.route("/getCurrentUser").get(currentUser);
 router.route("/updateAccountDetail").put(updateAccountDetail);
+router.route("/updateAvatar").put(upadateAvatar);
+router.route("/updateCoverimage").put(updateCoverImage);
+router.route("/getUserChannelProfile").get(getUserChannelProfile);
+router.route("/getWatchHistory").get(getWatchHistory);
 
 export default router;
