@@ -3,6 +3,7 @@ import { ApiError } from "../utiles/apiError.js";
 import { User } from "../models/User.model.js";
 import { apiResponse } from "../utiles/apiResponse.js";
 import { uploadOnCloudinary } from "../utiles/cloudnary.js";
+import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 const generateAccessTokenToken = async (userId) => {
@@ -162,16 +163,17 @@ const loginUser = asyncHandler(async (req, res) => {
         );
 });
 const loggedOutUser = asyncHandler(async (req, res) => {
+    const user = req.user._id;
+    console.log(user);
     await User.findByIdAndUpdate(req.user._id, {
         $set: {
-            refreshToken: undefined,
+            refreshToken: null,
         },
     });
     const options = {
         httpOnly: true,
         secure: true,
     };
-
     return res
         .status(200)
         .clearCookie("accessToken", options)
@@ -181,7 +183,7 @@ const loggedOutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incommingRefreshToken =
-        (await req.cookies.refreshToken) || req.body.refreshToken;
+        req.cookies.refreshToken || req.body.refreshToken;
     //this token access from client
     console.log(refreshAccessToken);
 
@@ -192,6 +194,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         incommingRefreshToken,
         process.env.REFRESH_TOKEN_SECRET
     );
+    console.log(decodedToken);
     const user = await User.findById(decodedToken._id);
     if (!user) {
         throw new ApiError(401, "unauthorized user");
@@ -260,7 +263,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     await user.save({ validateBeforeSave: true });
 
     // Respond to the client
-    res.status(200).json({ message: "Password changed successfully" });
+    return res.status(200).json({ message: "Password changed successfully" });
 });
 
 //or
@@ -300,7 +303,9 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 const currentUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
-        .json(200, req.user, "Current user fetch successfully");
+        .json(
+            new apiResponse(200, req.user, "Current user fetch successfully")
+        );
 });
 const updateAccountDetail = asyncHandler(async (req, res) => {
     const { username, fullname, email } = req.body;
