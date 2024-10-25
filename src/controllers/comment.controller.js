@@ -1,12 +1,8 @@
-import { asyncHandler } from "../utiles/asyncHandler";
-import { ApiError } from "../utiles/apiError";
-import { apiResponse } from "../utiles/apiResponse";
-import { Comment } from "../models/comment.model";
-import { asyncHandler } from "../utiles/asyncHandler";
-import { ApiError } from "../utiles/apiError";
-import { apiResponse } from "../utiles/apiResponse";
-import { Comment } from "../models/comment.model";
 import mongoose from "mongoose";
+import { Comment } from "../models/comment.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { apiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Get all comments for a specific video
 const getVideoComments = asyncHandler(async (req, res) => {
@@ -27,29 +23,10 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(apiResponse(200, comments, "Comments fetched successfully"));
+        .json(ApiResponse(200, comments, "Comments fetched successfully"));
 });
 
-const createComment = asyncHandler(async (req, res) => {
-    const { content, video, owner } = req.body;
-
-    if (!content || !video || !owner) {
-        throw new ApiError("All fields must be required", 400);
-    }
-
-    const newComment = new Comment({
-        content,
-        video,
-        owner,
-    });
-
-    const savedComment = await newComment.save();
-
-    return res
-        .status(201)
-        .json(apiResponse(201, savedComment, "Comment created successfully")); //
-});
-
+// Add a comment to a video
 const addComment = asyncHandler(async (req, res) => {
     const { content } = req.body; // Get content from request body
     const { videoId } = req.params; // Get videoId from request parameters
@@ -74,8 +51,9 @@ const addComment = asyncHandler(async (req, res) => {
     const savedComment = await newComment.save(); // Save the comment
     return res
         .status(201)
-        .json(ApiResponse(201, savedComment, "Comment added successfully"));
+        .json(apiResponse(201, savedComment, "Comment added successfully"));
 });
+
 // Update a comment
 const updateComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params; // Get commentId from request parameters
@@ -99,7 +77,7 @@ const updateComment = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(ApiResponse(200, updatedComment, "Comment updated successfully"));
+        .json(apiResponse(200, updatedComment, "Comment updated successfully"));
 });
 
 // Delete a comment
@@ -120,7 +98,7 @@ const deleteComment = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(ApiResponse(200, null, "Comment deleted successfully"));
+        .json(apiResponse(200, null, "Comment deleted successfully"));
 });
 
-export { createComment };
+export { getVideoComments, addComment, updateComment, deleteComment };
