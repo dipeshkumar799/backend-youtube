@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utiles/asyncHandler.js";
 import { ApiError } from "../utiles/apiError.js";
-import { User } from "../models/User.model.js";
+import { User } from "../models/user.model.js";
+
 import jwt from "jsonwebtoken";
 
 // Middleware to check if the user is authenticated via JWT
